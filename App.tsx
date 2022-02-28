@@ -9,18 +9,54 @@ import {
 } from 'react-native';
 
 import {DefaultTheme, NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import type {RouteProp} from '@react-navigation/native';
+import {
+  createNativeStackNavigator,
+  NativeStackNavigationProp,
+} from '@react-navigation/native-stack';
 
-const navTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: '#00aaff',
-    text: 'white',
-  },
+// Navigation
+
+type RootStackParamList = {
+  Quotes: {itemId: number};
+  Settings: undefined;
 };
 
-function HomeScreen({route, navigation}) {
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+function NavStack() {
+  return (
+    <Stack.Navigator
+      initialRouteName="Quotes"
+      screenOptions={{
+        headerTransparent: true,
+        headerTintColor: 'white',
+      }}>
+      <Stack.Screen
+        name="Quotes"
+        component={QuotesScreen}
+        initialParams={{itemId: 42}}
+        options={{title: 'Homer Quotes App'}}
+      />
+      <Stack.Screen name="Settings" component={SettingsScreen} />
+    </Stack.Navigator>
+  );
+}
+
+// Quotes
+
+type QuotesScreenRouteProp = RouteProp<RootStackParamList, 'Quotes'>;
+type QuotesScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Quotes'
+>;
+
+type QuotesProps = {
+  route: QuotesScreenRouteProp;
+  navigation: QuotesScreenNavigationProp;
+};
+
+function QuotesScreen({route, navigation}: QuotesProps) {
   const {itemId} = route.params;
 
   return (
@@ -30,7 +66,7 @@ function HomeScreen({route, navigation}) {
       <Button
         title="Generate"
         onPress={() =>
-          navigation.navigate('Home', {
+          navigation.navigate('Quotes', {
             itemId: Math.floor(Math.random() * 100),
           })
         }
@@ -44,40 +80,44 @@ function HomeScreen({route, navigation}) {
   );
 }
 
-function SettingsScreen({navigation}) {
+// Settings
+
+type SettingsScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Settings'
+>;
+
+type SettingsProps = {
+  navigation: SettingsScreenNavigationProp;
+};
+
+function SettingsScreen({navigation}: SettingsProps) {
   return (
     <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
       <Text>Settings</Text>
-      <Button
-        title="Go to Quotes"
-        onPress={() => navigation.navigate('Home')}
-      />
       <Button title="Go back" onPress={() => navigation.goBack()} />
     </View>
   );
 }
 
-const Stack = createNativeStackNavigator();
+// App
 
-const App = ({navigation}) => {
+const navTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: '#00aaff',
+    text: 'white',
+  },
+};
+
+const App = () => {
   return (
     <SafeAreaView style={styles.app}>
       <StatusBar barStyle="light-content" />
 
       <NavigationContainer theme={navTheme}>
-        <Stack.Navigator
-          screenOptions={{
-            headerTransparent: true,
-            headerTintColor: 'white',
-          }}>
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            initialParams={{itemId: 42}}
-            options={{title: 'Homer Quotes App'}}
-          />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-        </Stack.Navigator>
+        <NavStack />
       </NavigationContainer>
     </SafeAreaView>
   );
